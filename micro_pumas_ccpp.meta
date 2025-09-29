@@ -303,7 +303,7 @@
 [micro_mg_autocon_fact_in]
   standard_name = autconversion_enhancement_factor
   long_name = KK2000 autonconverion enhancement factor for PUMAS microphysics
-  units = none
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
@@ -311,7 +311,7 @@
 [micro_mg_autocon_nd_exp_in]
   standard_name = autconversion_nd_exponent
   long_name = KK2000 autonconverion nd exponent in PUMAS microphysics
-  units = none
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
@@ -319,7 +319,7 @@
 [micro_mg_autocon_lwp_exp_in]
   standard_name = autconversion_lwp_exponent
   long_name = KK2000 autonconverion lwp (qc) exponent in PUMAS microphysics
-  units = none
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
