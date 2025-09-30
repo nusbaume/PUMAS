@@ -173,7 +173,7 @@ logical :: icenuc_use_meyers
 ! Scale evaporation as IFS does (*0.3)
 logical :: evap_scl_ifs
 
-! Evap RH threhold following ifs
+! Evap RH threshold following ifs
 logical :: evap_rhthrsh_ifs
 
 ! Rain freezing at 0C following ifs
@@ -399,7 +399,7 @@ subroutine micro_pumas_init( &
   logical, intent(in) :: micro_mg_icenuc_rh_off_in ! Remove RH conditional from ice nucleation
   logical, intent(in) :: micro_mg_icenuc_use_meyers_in ! Internally: Meyers Ice Nucleation
   logical, intent(in) :: micro_mg_evap_scl_ifs_in ! Scale evaporation as IFS does (*0.3)
-  logical, intent(in) :: micro_mg_evap_rhthrsh_ifs_in ! Evap RH threhold following ifs
+  logical, intent(in) :: micro_mg_evap_rhthrsh_ifs_in ! Evap RH threshold following ifs
   logical, intent(in) :: micro_mg_rainfreeze_ifs_in ! Rain freezing temp following ifs
   logical, intent(in) :: micro_mg_ifs_sed_in ! snow sedimentation = 1m/s following ifs
   logical, intent(in) :: micro_mg_precip_fall_corr ! ensure rain fall speed non-zero if rain above in column
@@ -500,6 +500,13 @@ subroutine micro_pumas_init( &
   ifs_sed = micro_mg_ifs_sed_in
   precip_fall_corr = micro_mg_precip_fall_corr
   ! typical air density at 850 mb
+
+  ! Currently "do_hail" and "do_graupel" cannot both
+  ! be True, so raise an error if that is the case:
+  if (do_hail .and. do_graupel) then
+     errstring = "The variables 'do_hail' and 'do_graupel' cannot both be true.  Please set one to '.false.'."
+     return
+  end if
 
   rhosu = 85000._r8/(rair * tmelt)
 

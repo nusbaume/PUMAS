@@ -90,105 +90,105 @@
   type = integer
   intent = in
 [micro_mg_do_hail]
-  standard_name = flag_for_hail_instead_of_graupel
+  standard_name = do_hail_instead_of_graupel
   long_name = flag for hail for PUMAS microphysics (graupel possible if false)
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_do_graupel]
-  standard_name = flag_for_graupel_instead_of_hail
+  standard_name = do_graupel_instead_of_hail
   long_name = flag for graupel for PUMAS microphysics (hail possible if false)
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [microp_uniform]
-  standard_name = flag_for_uniform_subcolumns
+  standard_name = do_uniform_subcolumns
   long_name = flag for uniform subcolumns for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [do_cldice]
-  standard_name = flag_for_cloud_ice_processes
+  standard_name = do_cloud_ice_processes
   long_name = flag for cloud ice processes for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [use_hetfrz_classnuc]
-  standard_name = flag_for_heterogeneous_ice_nucleation
+  standard_name = do_heterogeneous_ice_nucleation
   long_name = flag for heterogeneous freezing for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [remove_supersat]
-  standard_name = flag_for_allowance_of_supersaturation_after_sedimentation
-  long_name = allow supersaturation after sedimentation for PUMAS microphysics
+  standard_name = remove_supersaturation_after_sedimentation
+  long_name = remove supersaturation after sedimentation for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_evap_sed_off]
-  standard_name = flag_for_no_evaporation_of_precipitation
+  standard_name = turn_off_evaporation_of_precipitation
   long_name = true for sedimenting condensate does not evaporate for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_icenuc_rh_off]
-  standard_name = flag_to_remove_threshold_for_ice_nucleation
+  standard_name = remove_relative_humidity_threshold_for_ice_nucleation
   long_name = If .true., remove RH threshold from ice nucelation calculation for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_icenuc_use_meyers]
-  standard_name = flag_to_use_meyers_ice_nucleation
+  standard_name = use_meyers_ice_nucleation
   long_name = use temperature dependent ice nucleation from Meyers 1992 for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_evap_scl_ifs]
-  standard_name = flag_to_scale_evaporation_like_ifs
+  standard_name = scale_evaporation_like_ecmwf_integrated_forecast_system
   long_name = if True Apply 0.3 scaling factor to evaporation of precipitation for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_evap_rhthrsh_ifs]
-  standard_name = flag_use_ifs_evaporation_threshold
+  standard_name = use_ecmwf_integrated_forecasting_system_relative_humidity_evaporation_threshold
   long_name = Do not evaporate precipitation until RH below 90% as done in the for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_rainfreeze_ifs]
-  standard_name = flag_to_freeze_rain_at_0C
+  standard_name = freeze_rain_at_0C
   long_name = Freeze rain at 0C for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_ifs_sed]
-  standard_name = flag_for_constant_sedimentation_fall_speed
+  standard_name = do_constant_sedimentation_fall_speed
   long_name = Use constant sedimentation of all species for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_precip_fall_corr]
-  standard_name = flag_for_fall_speed_correction
+  standard_name = do_precipitation_fall_speed_correction
   long_name = ensure non-zero precipitation fallspeed for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_accre_sees_auto]
-  standard_name = flag_for_accretion_sees_autoconverted_condensate
+  standard_name = accretion_sees_autoconverted_condensate
   long_name = KK200 accretion sees newely formed rain for PUMAS microphysics
   units = flag
   dimensions = ()
@@ -202,35 +202,35 @@
   type = logical
   intent = in
 [micro_mg_nccons]
-  standard_name = flag_for_prescribed_cloud_droplet_number_concentration
+  standard_name = use_prescribed_cloud_droplet_number_concentration
   long_name = flag for constant droplet concentration for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_nicons]
-  standard_name = flag_for_prescribed_cloud_ice_number_concentration
+  standard_name = use_prescribed_cloud_ice_number_concentration
   long_name = flag for constant ice concentration for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_ngcons]
-  standard_name = flag_for_prescribed_graupel_number_concentration
+  standard_name = use_prescribed_graupel_number_concentration
   long_name = flag for constant graupel concentration for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_nrcons]
-  standard_name = flag_for_prescribed_rain_number_concentration
+  standard_name = use_prescribed_rain_number_concentration
   long_name = flag for constant rain concentration for PUMAS microphysics
   units = flag
   dimensions = ()
   type = logical
   intent = in
 [micro_mg_nscons]
-  standard_name = flag_for_prescribed_snow_number_concentration
+  standard_name = use_prescribed_snow_number_concentration
   long_name = flag for constant snow concentration for PUMAS microphysics
   units = flag
   dimensions = ()
