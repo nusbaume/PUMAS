@@ -213,7 +213,7 @@ contains
                                   micro_snowice_in,  micro_numrain_in,              &
                                   micro_numsnow_in,  micro_graupice_in,             &
                                   micro_numgraup_in, micro_relvar_in,               &
-                                  micro_accre_enhan_in, micro_pmid_in,              &
+                                  pumas_accre_enhan, micro_pmid_in,              &
                                   micro_pdel_in, micro_pint_in,                     &
                                   micro_strat_cldfrc_in, micro_strat_liq_cldfrc_in, &
                                   micro_strat_ice_cldfrc_in, micro_qsatfac_in,      &
@@ -308,7 +308,7 @@ contains
     !microphysics relative variance of cloud water (1)
     real(kind_phys), intent(in) :: micro_relvar_in(:,:)
     !microphysics accretion enhancement factor (1)
-    real(kind_phys), intent(in) :: micro_accre_enhan_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_accre_enhan(:,:)
     !microphysics air pressure (Pa)
     real(kind_phys), intent(in) :: micro_pmid_in(:,:)
     !microphysics air pressure thickness (Pa)
@@ -508,7 +508,7 @@ contains
     real(pumas_r8) :: graupice(micro_ncol, micro_nlev)
     real(pumas_r8) :: numgraup(micro_ncol, micro_nlev)
     real(pumas_r8) :: relvar(micro_ncol, micro_nlev)
-    real(pumas_r8) :: accre_enhan(micro_ncol, micro_nlev)
+!    real(pumas_r8) :: accre_enhan(micro_ncol, micro_nlev)
     real(pumas_r8) :: pmid(micro_ncol, micro_nlev)
     real(pumas_r8) :: pdel(micro_ncol, micro_nlev)
     real(pumas_r8) :: pint(micro_ncol, micro_nlevp1)
@@ -619,7 +619,7 @@ contains
     graupice              = real(micro_graupice_in, pumas_r8)
     numgraup              = real(micro_numgraup_in, pumas_r8)
     relvar                = real(micro_relvar_in, pumas_r8)
-    accre_enhan           = real(micro_accre_enhan_in, pumas_r8)
+!    accre_enhan           = real(micro_accre_enhan_in, pumas_r8)
     pmid                  = real(micro_pmid_in, pumas_r8)
     pdel                  = real(micro_pdel_in, pumas_r8)
     pint                  = real(micro_pint_in, pumas_r8)
@@ -649,7 +649,7 @@ contains
         rainliq,                snowice,                             &
         numrain,                numsnow,                             &
         graupice,               numgraup,                            &
-        relvar,                 accre_enhan,                         &
+        relvar,                 pumas_accre_enhan,                   &
         pmid,                   pdel, pint,                          &
         strat_cldfrc,           strat_liq_cldfrc,                    &
         strat_ice_cldfrc,       qsatfac,                             &
