@@ -293,7 +293,7 @@
   kind = kind_phys
   intent = in
 [micro_mg_accre_enhan_fact_in]
-  standard_name = accretion_enhancement_factor
+  standard_name = microphysics_accretion_enhancement_factor
   long_name = KK2000 accretion enhancement factor for PUMAS microphysics
   units = 1
   dimensions = ()
@@ -575,13 +575,13 @@
   type = real
   kind = kind_phys
   intent = in
-[micro_accre_enhan_in]
-  standard_name = microphysics_accretion_enhancement_factor
+[pumas_accre_enhan]
+  standard_name = pumas_spatially_variable_microphysics_accretion_enhancement_factor
   long_name = microphysics accretion enhancement factor
   units = 1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
-  kind = kind_phys
+  kind = pumas_r8
   intent = in
 [micro_pmid_in]
   standard_name = microphysics_air_pressure
