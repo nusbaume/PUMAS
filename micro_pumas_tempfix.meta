@@ -1,0 +1,43 @@
+[ccpp-table-properties]
+  name = micro_pumas_tempfix
+  type = scheme
+  #Core PUMAS dependencies:
+  dependencies = micro_pumas_v1.F90,pumas_kinds.F90
+  dependencies = pumas_gamma_function.F90,micro_pumas_utils.F90
+  dependencies = micro_pumas_diags.F90
+  dependencies = pumas_stochastic_collect_tau.F90,tau_neural_net_quantile.F90
+  dependencies = module_neural_net.F90,ML_fixer_check.F90
+
+  #External dependencies:
+  dependencies = ../../../tools/wv_sat_methods.F90 #Lives in NCAR/ccpp-physics
+
+########################################################################
+[ccpp-arg-table]
+  name = micro_pumas_tempfix_init
+  type = scheme
+
+##### Init Arguments
+
+[proc_rates]
+  standard_name = microphysics_process_rates
+  long_name = microphysics process rates
+  units = none
+  dimensions = ()
+  type = proc_rates_type
+  intent = out
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+[errflg]
+  standard_name = ccpp_error_code
+  long_name = error code for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = integer
+  intent = out
+
