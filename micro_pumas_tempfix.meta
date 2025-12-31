@@ -9,7 +9,8 @@
   dependencies = module_neural_net.F90,ML_fixer_check.F90
 
   #External dependencies:
-  dependencies = ../../../tools/wv_sat_methods.F90 #Lives in NCAR/ccpp-physics
+  #Lives in NCAR/ccpp-physics
+  dependencies = ../../../to_be_ccppized/wv_sat_methods.F90
 
 ########################################################################
 [ccpp-arg-table]
