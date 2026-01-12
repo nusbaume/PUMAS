@@ -1,8 +1,8 @@
 !CACNOTE - All outfld calls to history_out_field are converted
-         - All history_add_field calls are done
-               - Except the constituent history_add_field needs to be changed - see CACNOTE
-               - Need to replace "#" in units?
-         - need to line up calls
+!         - All history_add_field calls are done
+!               - Except the constituent history_add_field needs to be changed - see CACNOTE
+!               - Need to replace "#" in units?
+!         - need to line up calls
 !!!----------------------------------------------
 
 module micro_pumas_tempfix
