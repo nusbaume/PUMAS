@@ -12,7 +12,8 @@ contains
 
   !> \section arg_table_micro_pumas_ccpp_init Argument Table
   !! \htmlinclude micro_pumas_ccpp_init.html
-  subroutine micro_pumas_ccpp_init(gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
+  subroutine micro_pumas_ccpp_init(micro_ncol, micro_nlev,                               &
+                                   Gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
                                    rhmini, iulog, micro_mg_do_hail, micro_mg_do_graupel, &
                                    microp_uniform, do_cldice, use_hetfrz_classnuc,       &
                                    remove_supersat, micro_mg_evap_sed_off,               &
@@ -35,16 +36,21 @@ contains
                                    micro_mg_effi_factor_in,     micro_mg_iaccr_factor_in,     &
                                    micro_mg_max_nicons_in, micro_mg_ncnst_in,                 &
                                    micro_mg_ninst_in, micro_mg_ngnst_in, micro_mg_nrnst_in,   &
-                                   micro_mg_nsnst_in, errmsg, errcode)
+                                   micro_mg_nsnst_in, micro_proc_rates_out, errmsg, errcode)
 
   !External dependencies:
-  use ccpp_kinds,        only: kind_phys
-  use micro_pumas_v1,    only: micro_pumas_init
-  use pumas_kinds,       only: pumas_r8=>kind_r8
+  use ccpp_kinds,         only: kind_phys
+  use micro_pumas_v1,     only: micro_pumas_init
+  use pumas_kinds,        only: pumas_r8=>kind_r8
+  use micro_pumas_diags,  only: proc_rates_type
+
+  use pumas_stochastic_collect_tau, only: ncd
 
   !Subroutine (dummy) arguments:
 
   !Host model constants:
+  integer,         intent(in) :: micro_ncol         !Number of horizontal microphysics columns (count)
+  integer,         intent(in) :: micro_nlev         !Number of microphysics vertical layers (count)
   real(kind_phys), intent(in) :: gravit !standard gravitational acceleration                    (m s-2)
   real(kind_phys), intent(in) :: rair   !gas constant for dry air                               (J kg-1 K-1)
   real(kind_phys), intent(in) :: rh2o   !gas constat for water vapor                            (J kg-1 K-1)
@@ -149,6 +155,9 @@ contains
   !Local PUMAS error message
   character(len=128) :: pumas_errstring
 
+  !microphysics process rates (none)
+  type(proc_rates_type), intent(out) :: micro_proc_rates_out
+
   !Initialize error message and error code:
   errmsg  = ''
   errcode = 0
@@ -194,6 +203,16 @@ contains
            micro_mg_nrcons, micro_mg_nrnst, micro_mg_nscons, micro_mg_nsnst, &
            stochastic_emulated_filename_quantile, stochastic_emulated_filename_input_scale, &
            stochastic_emulated_filename_output_scale, iulog, pumas_errstring)
+
+  !Set error code to non-zero value if PUMAS returns an error message:
+  if (trim(pumas_errstring) /= "") then
+    errcode = 1
+    errmsg = trim(pumas_errstring)
+    return
+  end if
+
+  ! Allocate the proc_rates DDT
+  call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)
 
   !Set error code to non-zero value if PUMAS returns an error message:
   if (trim(pumas_errstring) /= "") then
