@@ -19,22 +19,6 @@
 
 ##### Init Arguments
 
-[micro_ncol]
-  #Equivalent to "horizontal_loop_extent" unless subcolumns is enabled
-  standard_name = microphysics_horizontal_loop_extent
-  long_name = number of horizontal columns used by microphysics
-  units = count
-  dimensions = ()
-  type = integer
-  intent = in
-[micro_nlev]
-  #Vertical levels from surface to highest level with tropospheric clouds
-  standard_name = microphysics_vertical_layer_dimension
-  long_name = vertical layer dimension used by microphysics
-  units = count
-  dimensions = ()
-  type = integer
-  intent = in
 [gravit]
   standard_name = standard_gravitational_acceleration
   long_name = standard gravitational acceleration
@@ -429,13 +413,6 @@
   type = real
   kind = kind_phys
   intent = in
-[micro_proc_rates_out]
-  standard_name = microphysics_process_rates
-  long_name = microphysics process rates
-  units = none
-  dimensions = ()
-  type = proc_rates_type
-  intent = out
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
@@ -742,6 +719,14 @@
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
   kind = pumas_r8
+  intent = in
+[micro_mg_warm_rain]
+  standard_name = control_for_warm_rain_method
+  long_name = warm rain method (KK2000,sb2001,tau,emulated)
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
   intent = in
 [pumas_qcsinksum_rate1ord_out]
   standard_name = pumas_direct_conversion_rate_of_stratiform_cloud_water_to_precipitation_for_scavenging
@@ -1303,13 +1288,13 @@
   type = real
   kind = pumas_r8
   intent = out
-[micro_proc_rates_inout]
+[micro_proc_rates_out]
   standard_name = microphysics_process_rates
   long_name = microphysics process rates
   units = none
   dimensions = ()
   type = proc_rates_type
-  intent = inout
+  intent = out
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
@@ -1325,6 +1310,45 @@
   dimensions = ()
   type = integer
   intent = out
+
+########################################################################
+[ccpp-arg-table]
+  name = micro_pumas_ccpp_timestep_final
+  type = scheme
+
+[micro_proc_rates]
+  standard_name = microphysics_process_rates
+  long_name = microphysics process rates
+  units = none
+  dimensions = ()
+  type = proc_rates_type
+  intent = inout
+
+[micro_mg_warm_rain]
+  standard_name = control_for_warm_rain_method
+  long_name = warm rain method (KK2000,sb2001,tau,emulated)
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = in
+
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+[errcode]
+  standard_name = ccpp_error_code
+  long_name = error code for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = integer
+  intent = out
+
 #####################
 #End of metadata file
 #####################

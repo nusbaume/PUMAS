@@ -7,13 +7,13 @@ module micro_pumas_ccpp
 
   public :: micro_pumas_ccpp_init
   public :: micro_pumas_ccpp_run
+  public :: micro_pumas_ccpp_timestep_final
 
 contains
 
   !> \section arg_table_micro_pumas_ccpp_init Argument Table
   !! \htmlinclude micro_pumas_ccpp_init.html
-  subroutine micro_pumas_ccpp_init(micro_ncol, micro_nlev,                               &
-                                   Gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
+  subroutine micro_pumas_ccpp_init(Gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
                                    rhmini, iulog, micro_mg_do_hail, micro_mg_do_graupel, &
                                    microp_uniform, do_cldice, use_hetfrz_classnuc,       &
                                    remove_supersat, micro_mg_evap_sed_off,               &
@@ -36,7 +36,7 @@ contains
                                    micro_mg_effi_factor_in,     micro_mg_iaccr_factor_in,     &
                                    micro_mg_max_nicons_in, micro_mg_ncnst_in,                 &
                                    micro_mg_ninst_in, micro_mg_ngnst_in, micro_mg_nrnst_in,   &
-                                   micro_mg_nsnst_in, micro_proc_rates_out, errmsg, errcode)
+                                   micro_mg_nsnst_in, errmsg, errcode)
 
   !External dependencies:
   use ccpp_kinds,         only: kind_phys
@@ -44,13 +44,10 @@ contains
   use pumas_kinds,        only: pumas_r8=>kind_r8
   use micro_pumas_diags,  only: proc_rates_type
 
-  use pumas_stochastic_collect_tau, only: ncd
 
   !Subroutine (dummy) arguments:
 
   !Host model constants:
-  integer,         intent(in) :: micro_ncol         !Number of horizontal microphysics columns (count)
-  integer,         intent(in) :: micro_nlev         !Number of microphysics vertical layers (count)
   real(kind_phys), intent(in) :: gravit !standard gravitational acceleration                    (m s-2)
   real(kind_phys), intent(in) :: rair   !gas constant for dry air                               (J kg-1 K-1)
   real(kind_phys), intent(in) :: rh2o   !gas constat for water vapor                            (J kg-1 K-1)
@@ -155,9 +152,6 @@ contains
   !Local PUMAS error message
   character(len=128) :: pumas_errstring
 
-  !microphysics process rates (none)
-  type(proc_rates_type), intent(out) :: micro_proc_rates_out
-
   !Initialize error message and error code:
   errmsg  = ''
   errcode = 0
@@ -211,9 +205,6 @@ contains
     return
   end if
 
-  ! Allocate the proc_rates DDT
-  call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)
-
   !Set error code to non-zero value if PUMAS returns an error message:
   if (trim(pumas_errstring) /= "") then
     errcode = 1
@@ -242,6 +233,7 @@ contains
                                   pumas_numsnow_tend_external,                   &
                                   pumas_effi_external, pumas_frzimm,          &
                                   pumas_frzcnt, pumas_frzdep,                 &
+                                  micro_mg_warm_rain,                         &
 ! output vars
                                   pumas_qcsinksum_rate1ord_out,                     &
                                   pumas_airT_tend_out, pumas_airq_tend_out,         &
@@ -281,7 +273,7 @@ contains
                                   pumas_diam_graup_out, pumas_freq_graup_out,       &
                                   pumas_freq_snow_out, pumas_freq_rain_out,         &
                                   pumas_frac_ice_out, pumas_frac_cldliq_tend_out,   &
-                                  pumas_rain_evap_out, micro_proc_rates_inout,      &
+                                  pumas_rain_evap_out, micro_proc_rates_out,      &
                                   errmsg, errcode)
 
     !External dependencies:
@@ -289,6 +281,7 @@ contains
     use micro_pumas_v1,    only: micro_pumas_tend
     use micro_pumas_diags, only: proc_rates_type
     use pumas_kinds,       only: pumas_r8=>kind_r8
+    use pumas_stochastic_collect_tau, only: ncd
 
     !Subroutine (dummy) input arguments:
 
@@ -365,6 +358,8 @@ contains
     real(pumas_r8), intent(in) :: pumas_frzcnt(:,:)
     !microphysics tendency of cloud ice number concentration due to deposition nucleation (cm-3)
     real(pumas_r8), intent(in) :: pumas_frzdep(:,:)
+    !type of warm rain autoconversion/accr.method to use (none):
+    character(len=*), intent(in) :: micro_mg_warm_rain
 
     !Subroutine output arguments:
 
@@ -509,7 +504,7 @@ contains
     !microphysics rain evaporation rate wrt moist air and condensed water (kg kg-1 s-1)
     real(pumas_r8), intent(out) :: pumas_rain_evap_out(:,:)
     !microphysics process rates (none)
-    type(proc_rates_type), intent(inout) :: micro_proc_rates_inout
+    type(proc_rates_type), intent(out) :: micro_proc_rates_out
 
     character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
     integer,            intent(out) :: errcode !CCPP error code (1)
@@ -520,6 +515,9 @@ contains
     !Initialize error message and error code:
     errmsg  = ''
     errcode = 0
+
+    ! Allocate the proc_rates DDT
+    call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)
 
 
     !Call main PUMAS run routine:
@@ -571,7 +569,7 @@ contains
         pumas_graupice_out,           pumas_numgraup_vol_out, pumas_diam_graup_out,    &
         pumas_freq_graup_out,             pumas_freq_snow_out,        pumas_freq_rain_out,         &
         pumas_frac_ice_out,               pumas_frac_cldliq_tend_out,                    &
-        micro_proc_rates_inout, pumas_errstring,                     &
+        micro_proc_rates_out, pumas_errstring,                     &
         pumas_snowice_tend_external,  pumas_numsnow_tend_external,               &
         pumas_effi_external,          pumas_rain_evap_out,                     &
         pumas_frzimm,                 pumas_frzcnt,           pumas_frzdep           )
@@ -586,5 +584,28 @@ contains
     end if
 
   end subroutine micro_pumas_ccpp_run
+
+  !> \section arg_table_micro_pumas_ccpp_timestep_final Argument Table
+  !! \htmlinclude micro_pumas_ccpp_timestep_final.html
+  subroutine micro_pumas_ccpp_timestep_final(micro_proc_rates, micro_mg_warm_rain, errmsg, errcode)
+
+  use micro_pumas_diags,  only: proc_rates_type
+
+    type(proc_rates_type), intent(inout) :: micro_proc_rates
+
+    !type of warm rain autoconversion/accr.method to use (none):
+    character(len=*), intent(in) :: micro_mg_warm_rain
+
+    character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+    integer,            intent(out) :: errcode !CCPP error code (1)
+
+    ! No error handling in this routine
+    errmsg  = ''
+    errcode = 0
+
+    call micro_proc_rates%deallocate(micro_mg_warm_rain)
+
+  end subroutine micro_pumas_ccpp_timestep_final
+
 
 end module micro_pumas_ccpp
