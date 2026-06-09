@@ -4120,7 +4120,7 @@ end if
      !$acc end parallel
   else
      !$acc parallel vector_length(VLENS) default(present)
-     !acc loop gang vector collapse(2)
+     !$acc loop gang vector collapse(2)
      do k=1,nlev
         do i=1,mgncol
            ! NOTE: If CARMA is doing the ice microphysics, then the ice effective

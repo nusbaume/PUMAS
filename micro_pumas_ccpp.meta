@@ -52,8 +52,8 @@
   kind = kind_phys
   intent = in
 [tmelt]
-  standard_name = triple_point_temperature_of_water
-  long_name = triple point temperature of water
+  standard_name = freezing_point_of_water
+  long_name = freezing point of water
   units = K
   dimensions = ()
   type = real
@@ -553,8 +553,8 @@
   kind = pumas_r8
   intent = in
 [pumas_graupice]
-  standard_name = pumas_graupel_mixing_ratio_wrt_moist_air_and_condensed_water
-  long_name = microphysics graupel mixing ratio wrt moist air and condensed water of new state
+  standard_name = pumas_graupel_water_mixing_ratio_wrt_moist_air_and_condensed_water
+  long_name = microphysics graupel water mixing ratio wrt moist air and condensed water of new state
   units = kg kg-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
@@ -817,8 +817,8 @@
   kind = pumas_r8
   intent = out
 [pumas_graupice_tend_out]
-  standard_name = tendency_of_pumas_graupel_mixing_ratio_wrt_moist_air_and_condensed_water
-  long_name = microphysics tendency of graupel mixing ratio wrt moist air and condensed water
+  standard_name = tendency_of_pumas_graupel_water_mixing_ratio_wrt_moist_air_and_condensed_water
+  long_name = microphysics tendency of graupel water mixing ratio wrt moist air and condensed water
   units = kg kg-1 s-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
@@ -961,8 +961,8 @@
   kind = pumas_r8
   intent = out
 [pumas_graupice_in_prec_out]
-  standard_name = pumas_graupel_mixing_ratio_wrt_moist_air_and_condensed_water_of_new_state_in_precipitating_fraction_of_gridcell
-  long_name = microphysics graupel mixing ratio wrt moist air and condensed water of new state in precipitating fraction of gridcell
+  standard_name = pumas_graupel_water_mixing_ratio_wrt_moist_air_and_condensed_water_of_new_state_in_precipitating_fraction_of_gridcell
+  long_name = microphysics graupel water mixing ratio wrt moist air and condensed water of new state in precipitating fraction of gridcell
   units = kg kg-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
@@ -1217,7 +1217,7 @@
   kind = pumas_r8
   intent = out
 [pumas_graupice_out]
-  standard_name = pumas_graupel_mixing_ratio_wrt_moist_air_and_condensed_water_of_new_state
+  standard_name = pumas_graupel_water_mixing_ratio_wrt_moist_air_and_condensed_water_of_new_state
   long_name = microphysics graupel mixing ratio wrt moist air and condensed water of new state
   units = kg kg-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
