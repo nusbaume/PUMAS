@@ -3,7 +3,6 @@ module micro_pumas_ccpp
 
   implicit none
   private
-  save
 
   public :: micro_pumas_ccpp_init
   public :: micro_pumas_ccpp_run
@@ -13,7 +12,7 @@ contains
 
   !> \section arg_table_micro_pumas_ccpp_init Argument Table
   !! \htmlinclude micro_pumas_ccpp_init.html
-  subroutine micro_pumas_ccpp_init(Gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
+  subroutine micro_pumas_ccpp_init(gravit, rair, rh2o, cpair, tmelt, latvap, latice,     &
                                    rhmini, iulog, micro_mg_do_hail, micro_mg_do_graupel, &
                                    microp_uniform, do_cldice, use_hetfrz_classnuc,       &
                                    remove_supersat, micro_mg_evap_sed_off,               &
@@ -121,7 +120,7 @@ contains
   !-------------------------
 
   !Output variables:
-  character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+  character(len=*),   intent(out) :: errmsg  !PUMAS/CCPP error message (none)
   integer,            intent(out) :: errcode !CCPP error code (1)
 
   !Local variables:
@@ -197,13 +196,6 @@ contains
            micro_mg_nrcons, micro_mg_nrnst, micro_mg_nscons, micro_mg_nsnst, &
            stochastic_emulated_filename_quantile, stochastic_emulated_filename_input_scale, &
            stochastic_emulated_filename_output_scale, iulog, pumas_errstring)
-
-  !Set error code to non-zero value if PUMAS returns an error message:
-  if (trim(pumas_errstring) /= "") then
-    errcode = 1
-    errmsg = trim(pumas_errstring)
-    return
-  end if
 
   !Set error code to non-zero value if PUMAS returns an error message:
   if (trim(pumas_errstring) /= "") then
@@ -506,7 +498,7 @@ contains
     !microphysics process rates (none)
     type(proc_rates_type), intent(out) :: micro_proc_rates_out
 
-    character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+    character(len=*),   intent(out) :: errmsg  !PUMAS/CCPP error message (none)
     integer,            intent(out) :: errcode !CCPP error code (1)
 
     !Local PUMAS error message
@@ -578,7 +570,7 @@ contains
 
 
     !Set error code to non-zero value if PUMAS returns an error message:
-    if (trim(errmsg) /= "") then
+    if (trim(pumas_errstring) /= "") then
       errcode = 1
       errmsg  = trim(pumas_errstring)
     end if
@@ -589,14 +581,14 @@ contains
   !! \htmlinclude micro_pumas_ccpp_timestep_final.html
   subroutine micro_pumas_ccpp_timestep_final(micro_proc_rates, micro_mg_warm_rain, errmsg, errcode)
 
-  use micro_pumas_diags,  only: proc_rates_type
+    use micro_pumas_diags,  only: proc_rates_type
 
     type(proc_rates_type), intent(inout) :: micro_proc_rates
 
     !type of warm rain autoconversion/accr.method to use (none):
     character(len=*), intent(in) :: micro_mg_warm_rain
 
-    character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+    character(len=*), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
     integer,            intent(out) :: errcode !CCPP error code (1)
 
     ! No error handling in this routine
