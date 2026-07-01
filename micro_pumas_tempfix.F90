@@ -7,11 +7,9 @@
 
 module micro_pumas_tempfix
 
-   use micro_pumas_diags, only: proc_rates_type
 
    implicit none
    private
-   save
 
    public :: micro_pumas_tempfix_init ! init routine
 
@@ -21,11 +19,12 @@ CONTAINS
 !! \htmlinclude micro_pumas_tempfix_init.html
 subroutine micro_pumas_tempfix_init(proc_rates, errmsg, errflg)
 
+   use micro_pumas_diags, only: proc_rates_type
    type (proc_rates_type), intent(out)  :: proc_rates
 
 
    ! CCPP error handling variables
-   character(len=512), intent(out) :: errmsg
+   character(len=*), intent(out) :: errmsg
    integer,            intent(out) :: errflg
 
    errmsg = ''
