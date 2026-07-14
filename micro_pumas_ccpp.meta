@@ -771,7 +771,7 @@
   kind = pumas_r8
   intent = out
 [pumas_numliq_tend_out]
-  standard_name = tendency_of_pumas_mass_number_concentration_of_cloud_liquid_droplets_in_moist_air_and_condensed_water
+  standard_name = tendency_of_pumas_mass_number_concentration_of_cloud_liquid_water_droplets_in_moist_air_and_condensed_water
   long_name = mass number concentration of cloud liquid water wrt moist air and condensed water
   units = kg-1 s-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
@@ -779,7 +779,7 @@
   kind = pumas_r8
   intent = out
 [pumas_numice_tend_out]
-  standard_name = tendency_of_pumas_mass_number_concentration_of_cloud_ice_crystals_in_moist_air_and_condensed_water
+  standard_name = tendency_of_pumas_mass_number_concentration_of_cloud_ice_water_crystals_in_moist_air_and_condensed_water
   long_name = mass number concentration of cloud ice wrt moist air and condensed water
   units = kg-1 s-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
@@ -853,7 +853,7 @@
 [pumas_effi_out]
   standard_name = pumas_effective_radius_of_stratiform_cloud_ice_crystal
   long_name = microphysics effective radius of stratiform cloud ice particle
-  units = micron
+  units = um
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
   kind = pumas_r8
@@ -915,7 +915,7 @@
   kind = pumas_r8
   intent = out
 [pumas_cmeice_out]
-  standard_name = pumas_condensation_minus_evaporation_rate_of_in_cloud_ice_wrt_moist_air_and_condensed_water
+  standard_name = pumas_condensation_minus_evaporation_rate_of_in_cloud_ice_crystals_in_moist_air_and_condensed_water
   long_name = microphysics condensation minus evaporation rate of in-cloud ice wrt moist air and condensed water
   units = kg kg-1 s-1
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
@@ -1149,7 +1149,7 @@
 [pumas_rercld_out]
   standard_name = pumas_effective_radius_of_stratiform_cloud_liquid_plus_rain_drops
   long_name = microphysics effective radius of stratiform cloud liquid plus rain particles
-  units = m
+  units = um
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
   kind = pumas_r8
