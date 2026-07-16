@@ -78,7 +78,7 @@
 [rhmini]
   standard_name = tunable_parameter_for_minimum_relative_humidity_for_ice_stratus_for_two_moment_cloud_fraction
   long_name = relative humidity threshold parameter for nucleating ice for PUMAS microphysics
-  units = fraction
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
