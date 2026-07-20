@@ -266,7 +266,7 @@ contains
                                   pumas_freq_snow_out, pumas_freq_rain_out,         &
                                   pumas_frac_ice_out, pumas_frac_cldliq_tend_out,   &
                                   pumas_rain_evap_out, micro_proc_rates_out,      &
-                                  errmsg, errcode)
+                                  scheme_name, errmsg, errcode)
 
     !External dependencies:
     use ccpp_kinds,        only: kind_phys
@@ -498,6 +498,8 @@ contains
     !microphysics process rates (none)
     type(proc_rates_type), intent(out) :: micro_proc_rates_out
 
+    !Scheme name reported by qneg for negative-constituent warnings
+    character(len=64),  intent(out) :: scheme_name
     character(len=*),   intent(out) :: errmsg  !PUMAS/CCPP error message (none)
     integer,            intent(out) :: errcode !CCPP error code (1)
 
@@ -507,6 +509,7 @@ contains
     !Initialize error message and error code:
     errmsg  = ''
     errcode = 0
+    scheme_name = "micro_pumas_ccpp"
 
     ! Allocate the proc_rates DDT
     call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)

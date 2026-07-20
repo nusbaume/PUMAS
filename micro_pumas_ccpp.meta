@@ -693,7 +693,7 @@
 [pumas_effi_external]
   standard_name = pumas_effective_radius_of_stratiform_cloud_ice_crystal_from_external_microphysics
   long_name = microphysics effective radius of stratiform cloud ice crystal from external microphysics scheme
-  units = um
+  units = m
   dimensions = (microphysics_horizontal_loop_extent, microphysics_vertical_layer_dimension)
   type = real
   kind = pumas_r8
@@ -1296,6 +1296,13 @@
   units = none
   dimensions = ()
   type = proc_rates_type
+  intent = out
+[scheme_name]
+  standard_name = scheme_name
+  units = none
+  type = character
+  kind = len=64
+  dimensions = ()
   intent = out
 [errmsg]
   standard_name = ccpp_error_message
