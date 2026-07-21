@@ -9,7 +9,7 @@
   dependencies = module_neural_net.F90,ML_fixer_check.F90
 
   #External dependencies:
-  #Lives in ESCOMP/ccpp-physics
+  #Lives in ESCOMP/atmospheric_physics
   dependencies = ../../../to_be_ccppized/wv_sat_methods.F90
 
 ########################################################################
@@ -162,7 +162,7 @@
   intent = in
 [micro_mg_evap_rhthrsh_ifs]
   standard_name = use_ecmwf_integrated_forecasting_system_relative_humidity_evaporation_threshold
-  long_name = Do not evaporate precipitation until RH below 90% as done in the ECMWG IFS model
+  long_name = Do not evaporate precipitation until RH below 90% as done in the ECMWF IFS model
   units = flag
   dimensions = ()
   type = logical
@@ -641,7 +641,6 @@
   kind = pumas_r8
   intent = in
 [pumas_naai]
-  #NOTE: This variable is NOT a constituent in CAM
   standard_name = tendency_of_pumas_mass_number_concentration_of_activated_ice_nuclei
   long_name = microphysics tendency of activated ice nuclei mass number concentration
   units = kg-1 s-1
@@ -650,7 +649,6 @@
   kind = pumas_r8
   intent = in
 [pumas_npccn]
-  #NOTE: This variable is NOT a constituent in CAM
   standard_name = tendency_of_pumas_mass_number_concentration_of_activated_cloud_condensation_nuclei
   long_name = microphysics tendency of activated cloud condensation nuclei mass number concentration
   units = kg-1 s-1
