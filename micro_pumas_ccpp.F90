@@ -3,10 +3,10 @@ module micro_pumas_ccpp
 
   implicit none
   private
-  save
 
   public :: micro_pumas_ccpp_init
   public :: micro_pumas_ccpp_run
+  public :: micro_pumas_ccpp_timestep_final
 
 contains
 
@@ -38,9 +38,11 @@ contains
                                    micro_mg_nsnst_in, errmsg, errcode)
 
   !External dependencies:
-  use ccpp_kinds,        only: kind_phys
-  use micro_pumas_v1,    only: micro_pumas_init
-  use pumas_kinds,       only: pumas_r8=>kind_r8
+  use ccpp_kinds,         only: kind_phys
+  use micro_pumas_v1,     only: micro_pumas_init
+  use pumas_kinds,        only: pumas_r8=>kind_r8
+  use micro_pumas_diags,  only: proc_rates_type
+
 
   !Subroutine (dummy) arguments:
 
@@ -118,7 +120,7 @@ contains
   !-------------------------
 
   !Output variables:
-  character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+  character(len=*),   intent(out) :: errmsg  !PUMAS/CCPP error message (none)
   integer,            intent(out) :: errcode !CCPP error code (1)
 
   !Local variables:
@@ -206,69 +208,71 @@ contains
   !> \section arg_table_micro_pumas_ccpp_run Argument Table
   !! \htmlinclude micro_pumas_ccpp_run.html
   subroutine micro_pumas_ccpp_run(micro_ncol, micro_nlev, micro_nlevp1,             &
-                                  micro_dust_nbins, micro_timestep_in,              &
-                                  micro_airT_in, micro_airq_in, micro_cldliq_in,    &
-                                  micro_cldice_in,   micro_numliq_in,               &
-                                  micro_numice_in,   micro_rainliq_in,              &
-                                  micro_snowice_in,  micro_numrain_in,              &
-                                  micro_numsnow_in,  micro_graupice_in,             &
-                                  micro_numgraup_in, micro_relvar_in,               &
-                                  micro_accre_enhan_in, micro_pmid_in,              &
-                                  micro_pdel_in, micro_pint_in,                     &
-                                  micro_strat_cldfrc_in, micro_strat_liq_cldfrc_in, &
-                                  micro_strat_ice_cldfrc_in, micro_qsatfac_in,      &
-                                  micro_naai_in, micro_npccn_in,                    &
-                                  micro_rndst_in, micro_nacon_in,                   &
-                                  micro_snowice_tend_external_in,                   &
-                                  micro_numsnow_tend_external_in,                   &
-                                  micro_effi_external_in, micro_frzimm_in,          &
-                                  micro_frzcnt_in, micro_frzdep_in,                 &
-                                  micro_qcsinksum_rate1ord_out,                     &
-                                  micro_airT_tend_out, micro_airq_tend_out,         &
-                                  micro_cldliq_tend_out, micro_cldice_tend_out,     &
-                                  micro_numliq_tend_out, micro_numice_tend_out,     &
-                                  micro_rainliq_tend_out, micro_snowice_tend_out,   &
-                                  micro_numrain_tend_out, micro_numsnow_tend_out,   &
-                                  micro_graupice_tend_out, micro_numgraup_tend_out, &
-                                  micro_effc_out, micro_effc_fn_out,                &
-                                  micro_effi_out, micro_sadice_out,                 &
-                                  micro_sadsnow_out, micro_prect_out,               &
-                                  micro_preci_out, micro_prec_evap_out,             &
-                                  micro_am_evap_st_out, micro_prec_prod_out,        &
-                                  micro_cmeice_out, micro_deffi_out,                &
-                                  micro_pgamrad_out, micro_lamcrad_out,             &
-                                  micro_snowice_in_prec_out,                        &
-                                  micro_scaled_diam_snow_out,                       &
-                                  micro_graupice_in_prec_out,                       &
-                                  micro_numgraup_vol_in_prec_out,                   &
-                                  micro_scaled_diam_graup_out,                      &
-                                  micro_lflx_out, micro_iflx_out, micro_gflx_out,   &
-                                  micro_rflx_out, micro_sflx_out,                   &
-                                  micro_rainliq_in_prec_out, micro_reff_rain_out,   &
-                                  micro_reff_snow_out, micro_reff_grau_out,         &
-                                  micro_numrain_vol_in_prec_out,                    &
-                                  micro_numsnow_vol_in_prec_out,                    &
-                                  micro_refl_out, micro_arefl_out,                  &
-                                  micro_areflz_out, micro_frefl_out,                &
-                                  micro_csrfl_out, micro_acsrfl_out,                &
-                                  micro_fcsrfl_out, micro_refl10cm_out,             &
-                                  micro_reflz10cm_out, micro_rercld_out,            &
-                                  micro_ncai_out, micro_ncal_out,                   &
-                                  micro_rainliq_out, micro_snowice_out,             &
-                                  micro_numrain_vol_out, micro_numsnow_vol_out,     &
-                                  micro_diam_rain_out, micro_diam_snow_out,         &
-                                  micro_graupice_out, micro_numgraup_vol_out,       &
-                                  micro_diam_graup_out, micro_freq_graup_out,       &
-                                  micro_freq_snow_out, micro_freq_rain_out,         &
-                                  micro_frac_ice_out, micro_frac_cldliq_tend_out,   &
-                                  micro_rain_evap_out, micro_proc_rates_inout,      &
-                                  errmsg, errcode)
+                                  micro_dust_nbins, pumas_timestep,              &
+                                  pumas_airT, pumas_airq, pumas_cldliq,    &
+                                  pumas_cldice,   pumas_numliq,               &
+                                  pumas_numice,   pumas_rainliq,              &
+                                  pumas_snowice,  pumas_numrain,              &
+                                  pumas_numsnow,  pumas_graupice,             &
+                                  pumas_numgraup, pumas_relvar,               &
+                                  pumas_accre_enhan, pumas_pmid,              &
+                                  pumas_pdel, pumas_pint,                     &
+                                  pumas_strat_cldfrc, pumas_strat_liq_cldfrc, &
+                                  pumas_strat_ice_cldfrc, pumas_qsatfac,      &
+                                  pumas_naai, pumas_npccn,                    &
+                                  pumas_rndst, pumas_nacon,                   &
+                                  pumas_snowice_tend_external,                   &
+                                  pumas_numsnow_tend_external,                   &
+                                  pumas_effi_external, pumas_frzimm,          &
+                                  pumas_frzcnt, pumas_frzdep,                 &
+                                  micro_mg_warm_rain,                         &
+! output vars
+                                  pumas_qcsinksum_rate1ord_out,                     &
+                                  pumas_airT_tend_out, pumas_airq_tend_out,         &
+                                  pumas_cldliq_tend_out, pumas_cldice_tend_out,     &
+                                  pumas_numliq_tend_out, pumas_numice_tend_out,     &
+                                  pumas_rainliq_tend_out, pumas_snowice_tend_out,   &
+                                  pumas_numrain_tend_out, pumas_numsnow_tend_out,   &
+                                  pumas_graupice_tend_out, pumas_numgraup_tend_out, &
+                                  pumas_effc_out, pumas_effc_fn_out,                &
+                                  pumas_effi_out, pumas_sadice_out,                 &
+                                  pumas_sadsnow_out, pumas_prect_out,               &
+                                  pumas_preci_out, pumas_prec_evap_out,             &
+                                  pumas_am_evap_st_out, pumas_prec_prod_out,        &
+                                  pumas_cmeice_out, pumas_deffi_out,                &
+                                  pumas_pgamrad_out, pumas_lamcrad_out,             &
+                                  pumas_snowice_in_prec_out,                        &
+                                  pumas_scaled_diam_snow_out,                       &
+                                  pumas_graupice_in_prec_out,                       &
+                                  pumas_numgraup_vol_in_prec_out,                   &
+                                  pumas_scaled_diam_graup_out,                      &
+                                  pumas_lflx_out, pumas_iflx_out, pumas_gflx_out,   &
+                                  pumas_rflx_out, pumas_sflx_out,                   &
+                                  pumas_rainliq_in_prec_out, pumas_reff_rain_out,   &
+                                  pumas_reff_snow_out, pumas_reff_grau_out,         &
+                                  pumas_numrain_vol_in_prec_out,                    &
+                                  pumas_numsnow_vol_in_prec_out,                    &
+                                  pumas_refl_out, pumas_arefl_out,                  &
+                                  pumas_areflz_out, pumas_frefl_out,                &
+                                  pumas_csrfl_out, pumas_acsrfl_out,                &
+                                  pumas_fcsrfl_out, pumas_refl10cm_out,             &
+                                  pumas_reflz10cm_out, pumas_rercld_out,            &
+                                  pumas_ncai_out, pumas_ncal_out,                   &
+                                  pumas_rainliq_out, pumas_snowice_out,             &
+                                  pumas_numrain_vol_out, pumas_numsnow_vol_out,     &
+                                  pumas_diam_rain_out, pumas_diam_snow_out,         &
+                                  pumas_graupice_out, pumas_numgraup_vol_out,       &
+                                  pumas_diam_graup_out, pumas_freq_graup_out,       &
+                                  pumas_freq_snow_out, pumas_freq_rain_out,         &
+                                  pumas_frac_ice_out, pumas_frac_cldliq_tend_out,   &
+                                  pumas_rain_evap_out, micro_proc_rates_out,      &
+                                  scheme_name, errmsg, errcode)
 
     !External dependencies:
-    use ccpp_kinds,        only: kind_phys
     use micro_pumas_v1,    only: micro_pumas_tend
     use micro_pumas_diags, only: proc_rates_type
     use pumas_kinds,       only: pumas_r8=>kind_r8
+    use pumas_stochastic_collect_tau, only: ncd
 
     !Subroutine (dummy) input arguments:
 
@@ -277,325 +281,226 @@ contains
     integer,         intent(in) :: micro_nlev         !Number of microphysics vertical layers (count)
     integer,         intent(in) :: micro_nlevp1       !Number of microphysics vertical interfaces (count)
     integer,         intent(in) :: micro_dust_nbins   !Number of dust size bins
-    real(kind_phys), intent(in) :: micro_timestep_in  !Microphysics time step (s)
+
+    real(pumas_r8), intent(in) :: pumas_timestep  !Microphysics time step (s)
 
     !Host model state variables:
 
     !Microphysics Air temperature (K)
-    real(kind_phys), intent(in) :: micro_airT_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_airT(:,:)
     !Microphysics Water vapor mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_airq_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_airq(:,:)
     !Microphysics cloud liquid water mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_cldliq_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_cldliq(:,:)
     !Microphysics cloud ice mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_cldice_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_cldice(:,:)
     !microphysics mass number concentration of cloud liquid water wrt moist air and condensed water (kg-1)
-    real(kind_phys), intent(in) :: micro_numliq_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numliq(:,:)
     !microphysics mass number concentration of cloud ice wrt moist air and condensed water (kg-1)
-    real(kind_phys), intent(in) :: micro_numice_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numice(:,:)
     !microphysics rain mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_rainliq_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_rainliq(:,:)
     !microphysics snow mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_snowice_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_snowice(:,:)
     !microphysics mass number concentration of rain wrt moist air and condensed water (kg-1)
-    real(kind_phys), intent(in) :: micro_numrain_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numrain(:,:)
     !microphysics mass number concentration of snow wrt moist air and condensed water (kg-1)
-    real(kind_phys), intent(in) :: micro_numsnow_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numsnow(:,:)
     !microphysics graupel mixing ratio wrt moist air and condensed water (kg kg-1)
-    real(kind_phys), intent(in) :: micro_graupice_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_graupice(:,:)
     !microphysics mass number concentration of graupel wrt moist air and condensed water (kg-1)
-    real(kind_phys), intent(in) :: micro_numgraup_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numgraup(:,:)
     !microphysics relative variance of cloud water (1)
-    real(kind_phys), intent(in) :: micro_relvar_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_relvar(:,:)
     !microphysics accretion enhancement factor (1)
-    real(kind_phys), intent(in) :: micro_accre_enhan_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_accre_enhan(:,:)
     !microphysics air pressure (Pa)
-    real(kind_phys), intent(in) :: micro_pmid_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_pmid(:,:)
     !microphysics air pressure thickness (Pa)
-    real(kind_phys), intent(in) :: micro_pdel_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_pdel(:,:)
     !microphysics air pressure at interfaces (Pa)
-    real(kind_phys), intent(in) :: micro_pint_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_pint(:,:)
     !microphysics stratiform cloud area fraction (fraction)
-    real(kind_phys), intent(in) :: micro_strat_cldfrc_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_strat_cldfrc(:,:)
     !microphysics stratiform cloud liquid area fraction (fraction)
-    real(kind_phys), intent(in) :: micro_strat_liq_cldfrc_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_strat_liq_cldfrc(:,:)
     !microphysics stratiform cloud ice area fraction (fraction)
-    real(kind_phys), intent(in) :: micro_strat_ice_cldfrc_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_strat_ice_cldfrc(:,:)
     !microphysics subgrid cloud water saturation scaling factor (1)
-    real(kind_phys), intent(in) :: micro_qsatfac_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_qsatfac(:,:)
     !microphysics tendency of activated ice nuclei mass number concentration (kg-1 s-1)
-    real(kind_phys), intent(in) :: micro_naai_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_naai(:,:)
     !microphysics tendency of activated cloud condensation nuclei mass number concentration (kg-1 s-1)
-    real(kind_phys), intent(in) :: micro_npccn_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_npccn(:,:)
     !microphysics dust radii by size bin  (m)
-    real(kind_phys), intent(in) :: micro_rndst_in(:,:,:)
+    real(pumas_r8), intent(in) :: pumas_rndst(:,:,:)
     !microphysics dust number concentration by size bin (m-3)
-    real(kind_phys), intent(in) :: micro_nacon_in(:,:,:)
+    real(pumas_r8), intent(in) :: pumas_nacon(:,:,:)
     !microphysics tendency of snow mixing ratio wrt moist air and condensed water from external microphysics (kg kg-1 s-1)
-    real(kind_phys), intent(in) :: micro_snowice_tend_external_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_snowice_tend_external(:,:)
     !microphysics tendency of mass number concentration of snow wrt moist air and condensed water from external microphysics
     !(kg-1 s-1)
-    real(kind_phys), intent(in) :: micro_numsnow_tend_external_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_numsnow_tend_external(:,:)
     !microphysics effective radius of stratiform cloud ice particle from external microphysics (m)
-    real(kind_phys), intent(in) :: micro_effi_external_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_effi_external(:,:)
     !microphysics tendency of cloud liquid droplet number concentration due to immersion freezing (cm-3)
-    real(kind_phys), intent(in) :: micro_frzimm_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_frzimm(:,:)
     !microphysics tendency of cloud liquid droplet number concentration due to contact freezing (cm-3)
-    real(kind_phys), intent(in) :: micro_frzcnt_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_frzcnt(:,:)
     !microphysics tendency of cloud ice number concentration due to deposition nucleation (cm-3)
-    real(kind_phys), intent(in) :: micro_frzdep_in(:,:)
+    real(pumas_r8), intent(in) :: pumas_frzdep(:,:)
+    !type of warm rain autoconversion/accr.method to use (none):
+    character(len=*), intent(in) :: micro_mg_warm_rain
 
     !Subroutine output arguments:
 
     !microphysics direct conversion rate of stratiform cloud water to precipitation (s-1)
-    real(kind_phys), intent(out) :: micro_qcsinksum_rate1ord_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_qcsinksum_rate1ord_out(:,:)
     !microphysics tendency of dry air enthalpy at constant pressure (J kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_airT_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_airT_tend_out(:,:)
     !microphysics tendency of water vapor mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_airq_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_airq_tend_out(:,:)
     !microphysics tendency of cloud liquid water mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_cldliq_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_cldliq_tend_out(:,:)
     !microphysics tendency of cloud ice mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_cldice_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_cldice_tend_out(:,:)
     !microphysics tendency of mass number concentration of cloud liquid water wrt moist air and condensed water (kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_numliq_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numliq_tend_out(:,:)
     !microphysics tendency of mass number concentration of cloud ice wrt moist air and condensed water (kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_numice_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numice_tend_out(:,:)
     !microphysics tendency of rain mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_rainliq_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rainliq_tend_out(:,:)
     !microphysics tendency of snow mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_snowice_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_snowice_tend_out(:,:)
     !microphysics tendency of mass number concentration of rain wrt moist air and condensed water (kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_numrain_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numrain_tend_out(:,:)
     !microphysics tendency of mass number concentration of snow wrt moist air and condensed water (kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_numsnow_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numsnow_tend_out(:,:)
     !microphysics tendency of graupel mixing ratio wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_graupice_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_graupice_tend_out(:,:)
     !microphysics tendency of mass number concentration of graupel wrt moist air and condensed water (kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_numgraup_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numgraup_tend_out(:,:)
     !microphysics effective radius of stratiform cloud liquid water particle (um)
-    real(kind_phys), intent(out) :: micro_effc_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_effc_out(:,:)
     !microphysics effective radius of stratiform cloud liquid water particle assuming droplet number concentration of 1e8 kg-1 (um)
-    real(kind_phys), intent(out) :: micro_effc_fn_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_effc_fn_out(:,:)
     !microphysics effective radius of stratiform cloud ice particle (um)
-    real(kind_phys), intent(out) :: micro_effi_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_effi_out(:,:)
     !microphysics cloud ice surface area density (cm2 cm-3)
-    real(kind_phys), intent(out) :: micro_sadice_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_sadice_out(:,:)
     !microphysics snow surface area density (cm2 cm-3)
-    real(kind_phys), intent(out) :: micro_sadsnow_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_sadsnow_out(:,:)
     !microphysics LWE large scale precipitation rate at surface (m s-1)
-    real(kind_phys), intent(out) :: micro_prect_out(:)
+    real(pumas_r8), intent(out) :: pumas_prect_out(:)
     !microphysics LWE large scale snowfall rate at surface (m s-1)
-    real(kind_phys), intent(out) :: micro_preci_out(:)
+    real(pumas_r8), intent(out) :: pumas_preci_out(:)
     !microphysics precipitation evaporation rate wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_prec_evap_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_prec_evap_out(:,:)
     !microphysics precipitation evaporation area (fraction)
-    real(kind_phys), intent(out) :: micro_am_evap_st_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_am_evap_st_out(:,:)
     !microphysics precipitation production rate wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_prec_prod_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_prec_prod_out(:,:)
     !microphysics condensation minus evaporation rate of in-cloud ice wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_cmeice_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_cmeice_out(:,:)
     !microphysics effective diameter of stratiform cloud ice particles for radiation (um)
-    real(kind_phys), intent(out) :: micro_deffi_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_deffi_out(:,:)
     !microphysics cloud particle size distribution shape parameter (1)
-    real(kind_phys), intent(out) :: micro_pgamrad_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_pgamrad_out(:,:)
     !microphysics cloud particle size distribution slope parameter (1)
-    real(kind_phys), intent(out) :: micro_lamcrad_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_lamcrad_out(:,:)
     !microphysics snow mixing ratio wrt moist air and condensed water of new state in precipitating fraction of gridcell (kg kg-1)
-    real(kind_phys), intent(out) :: micro_snowice_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_snowice_in_prec_out(:,:)
     !microphysics snow scaled diameter (m)
-    real(kind_phys), intent(out) :: micro_scaled_diam_snow_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_scaled_diam_snow_out(:,:)
     !microphysics graupel mixing ratio wrt moist air and condensed water of new state in precipitating fraction of gridcell (kg kg-1)
-    real(kind_phys), intent(out) :: micro_graupice_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_graupice_in_prec_out(:,:)
     !microphysics graupel number concentration of new state in precipitating fraction of gridcell (m-3)
-    real(kind_phys), intent(out) :: micro_numgraup_vol_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numgraup_vol_in_prec_out(:,:)
     !microphysics graupel scaled diameter (m)
-    real(kind_phys), intent(out) :: micro_scaled_diam_graup_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_scaled_diam_graup_out(:,:)
     !microphysics cloud liquid sedimentation flux (kg m-2 s-1)
-    real(kind_phys), intent(out) :: micro_lflx_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_lflx_out(:,:)
     !microphysics cloud ice sedimentation flux (kg m-2 s-1)
-    real(kind_phys), intent(out) :: micro_iflx_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_iflx_out(:,:)
     !microphysics graupel sedimentation flux (kg m-2 s-1)
-    real(kind_phys), intent(out) :: micro_gflx_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_gflx_out(:,:)
     !microphysics rain sedimentation flux (kg m-2 s-1)
-    real(kind_phys), intent(out) :: micro_rflx_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rflx_out(:,:)
     !microphysics snow sedimentation flux (kg m-2 s-1)
-    real(kind_phys), intent(out) :: micro_sflx_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_sflx_out(:,:)
     !microphysics rain mixing ratio wrt moist air and condensed water of new state in precipitating fraction of gridcell (kg kg-1)
-    real(kind_phys), intent(out) :: micro_rainliq_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rainliq_in_prec_out(:,:)
     !microphysics effective radius of stratiform rain particle (um)
-    real(kind_phys), intent(out) :: micro_reff_rain_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_reff_rain_out(:,:)
     !microphysics effective radius of stratiform snow particle (um)
-    real(kind_phys), intent(out) :: micro_reff_snow_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_reff_snow_out(:,:)
     !microphysics effective radius of stratiform graupel particle (um)
-    real(kind_phys), intent(out) :: micro_reff_grau_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_reff_grau_out(:,:)
     !microphysics rain number concentration of new state in precipitating fraction of gridcell (m-3)
-    real(kind_phys), intent(out) :: micro_numrain_vol_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numrain_vol_in_prec_out(:,:)
     !microphysics snow number concentration of new state in precipitating fraction of gridcell (m-3)
-    real(kind_phys), intent(out) :: micro_numsnow_vol_in_prec_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numsnow_vol_in_prec_out(:,:)
     !microphysics analytic radar reflectivity at 94 GHz in precipitating fraction of gridcell (dBZ)
-    real(kind_phys), intent(out) :: micro_refl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_refl_out(:,:)
     !microphysics analytic radar reflectivity at 94 GHz (dBZ)
-    real(kind_phys), intent(out) :: micro_arefl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_arefl_out(:,:)
     !microphysics analytic radar reflectivity z factor at 94 GHz (mm6 m-3)
-    real(kind_phys), intent(out) :: micro_areflz_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_areflz_out(:,:)
     !microphysics fraction of gridcell with nonzero radar reflectivity (fraction)
-    real(kind_phys), intent(out) :: micro_frefl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_frefl_out(:,:)
     !microphysics analytic radar reflectivity at 94 GHz with CloudSat thresholds in precipitating fraction of gridcell (dBZ)
-    real(kind_phys), intent(out) :: micro_csrfl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_csrfl_out(:,:)
     !microphysics analytic radar reflectivity at 94 GHz with CloudSat thresholds (dBZ)
-    real(kind_phys), intent(out) :: micro_acsrfl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_acsrfl_out(:,:)
     !microphysics fraction of gridcell with nonzero radar reflectivity with CloudSat thresholds (fraction)
-    real(kind_phys), intent(out) :: micro_fcsrfl_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_fcsrfl_out(:,:)
     !microphysics analytic radar reflectivity at 10 cm wavelength (dBZ)
-    real(kind_phys), intent(out) :: micro_refl10cm_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_refl10cm_out(:,:)
     !microphysics analytic radar reflectivity z factor at 10 cm wavelength (mm6 m-3)
-    real(kind_phys), intent(out) :: micro_reflz10cm_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_reflz10cm_out(:,:)
     !microphysics effective radius of stratiform cloud liquid plus rain particles (m)
-    real(kind_phys), intent(out) :: micro_rercld_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rercld_out(:,:)
     !microphysics available ice nuclei number concentration of new state (m-3)
-    real(kind_phys), intent(out) :: micro_ncai_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_ncai_out(:,:)
     !microphysics available cloud condensation nuclei number concentration of new state (m-3)
-    real(kind_phys), intent(out) :: micro_ncal_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_ncal_out(:,:)
     !microphysics rain mixing ratio wrt moist air and condensed water of new state (kg kg-1)
-    real(kind_phys), intent(out) :: micro_rainliq_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rainliq_out(:,:)
     !microphysics snow mixing ratio wrt moist air and condensed water of new state (kg kg-1)
-    real(kind_phys), intent(out) :: micro_snowice_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_snowice_out(:,:)
     !microphysics rain number concentration of new state (m-3)
-    real(kind_phys), intent(out) :: micro_numrain_vol_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numrain_vol_out(:,:)
     !microphysics snow number concentration of new state in precipitating fraction of gridcell (m-3)
-    real(kind_phys), intent(out) :: micro_numsnow_vol_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numsnow_vol_out(:,:)
     !microphysics average diameter of stratiform rain particle (m)
-    real(kind_phys), intent(out) :: micro_diam_rain_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_diam_rain_out(:,:)
     !microphysics average diameter of stratiform snow particle (m)
-    real(kind_phys), intent(out) :: micro_diam_snow_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_diam_snow_out(:,:)
     !microphysics graupel mixing ratio wrt moist air and condensed water of new state (kg kg-1)
-    real(kind_phys), intent(out) :: micro_graupice_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_graupice_out(:,:)
     !microphysics graupel number concentration of new state (m-3)
-    real(kind_phys), intent(out) :: micro_numgraup_vol_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_numgraup_vol_out(:,:)
     !microphysics average diameter of stratiform graupel particle (m)
-    real(kind_phys), intent(out) :: micro_diam_graup_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_diam_graup_out(:,:)
     !microphysics fraction of gridcell with graupel (fraction)
-    real(kind_phys), intent(out) :: micro_freq_graup_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_freq_graup_out(:,:)
     !microphysics fraction of gridcell with snow (fraction)
-    real(kind_phys), intent(out) :: micro_freq_snow_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_freq_snow_out(:,:)
     !microphysics fraction of gridcell with rain (fraction)
-    real(kind_phys), intent(out) :: micro_freq_rain_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_freq_rain_out(:,:)
     !microphysics fraction of frozen water to total condensed water (fraction)
-    real(kind_phys), intent(out) :: micro_frac_ice_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_frac_ice_out(:,:)
     !microphysics fraction of cloud liquid tendency applied to state (fraction)
-    real(kind_phys), intent(out) :: micro_frac_cldliq_tend_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_frac_cldliq_tend_out(:,:)
     !microphysics rain evaporation rate wrt moist air and condensed water (kg kg-1 s-1)
-    real(kind_phys), intent(out) :: micro_rain_evap_out(:,:)
+    real(pumas_r8), intent(out) :: pumas_rain_evap_out(:,:)
     !microphysics process rates (none)
-    type(proc_rates_type), intent(inout) :: micro_proc_rates_inout
+    type(proc_rates_type), intent(out) :: micro_proc_rates_out
 
-    character(len=512), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+    !Scheme name reported by qneg for negative-constituent warnings
+    character(len=64),  intent(out) :: scheme_name
+    character(len=*),   intent(out) :: errmsg  !PUMAS/CCPP error message (none)
     integer,            intent(out) :: errcode !CCPP error code (1)
-
-    !Local variables:
-    real(pumas_r8) :: micro_timestep
-    real(pumas_r8) :: airT(micro_ncol, micro_nlev)
-    real(pumas_r8) :: airq(micro_ncol, micro_nlev)
-    real(pumas_r8) :: cldliq(micro_ncol, micro_nlev)
-    real(pumas_r8) :: cldice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numliq(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: rainliq(micro_ncol, micro_nlev)
-    real(pumas_r8) :: snowice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numrain(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numsnow(micro_ncol, micro_nlev)
-    real(pumas_r8) :: graupice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numgraup(micro_ncol, micro_nlev)
-    real(pumas_r8) :: relvar(micro_ncol, micro_nlev)
-    real(pumas_r8) :: accre_enhan(micro_ncol, micro_nlev)
-    real(pumas_r8) :: pmid(micro_ncol, micro_nlev)
-    real(pumas_r8) :: pdel(micro_ncol, micro_nlev)
-    real(pumas_r8) :: pint(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: strat_cldfrc(micro_ncol, micro_nlev)
-    real(pumas_r8) :: strat_liq_cldfrc(micro_ncol, micro_nlev)
-    real(pumas_r8) :: strat_ice_cldfrc(micro_ncol, micro_nlev)
-    real(pumas_r8) :: qsatfac(micro_ncol, micro_nlev)
-    real(pumas_r8) :: naai(micro_ncol, micro_nlev)
-    real(pumas_r8) :: npccn(micro_ncol, micro_nlev)
-    real(pumas_r8) :: rndst(micro_ncol, micro_nlev, micro_dust_nbins)
-    real(pumas_r8) :: nacon(micro_ncol, micro_nlev, micro_dust_nbins)
-    real(pumas_r8) :: snowice_tend_external(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numsnow_tend_external(micro_ncol, micro_nlev)
-    real(pumas_r8) :: effi_external(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frzimm(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frzcnt(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frzdep(micro_ncol, micro_nlev)
-    real(pumas_r8) :: qcsinksum_rate1ord(micro_ncol, micro_nlev)
-    real(pumas_r8) :: airT_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: airq_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: cldliq_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: cldice_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numliq_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numice_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: rainliq_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: snowice_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numrain_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numsnow_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: graupice_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numgraup_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: effc(micro_ncol, micro_nlev)
-    real(pumas_r8) :: effc_fn(micro_ncol, micro_nlev)
-    real(pumas_r8) :: effi(micro_ncol, micro_nlev)
-    real(pumas_r8) :: sadice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: sadsnow(micro_ncol, micro_nlev)
-    real(pumas_r8) :: prect(micro_ncol)
-    real(pumas_r8) :: preci(micro_ncol)
-    real(pumas_r8) :: prec_evap(micro_ncol, micro_nlev)
-    real(pumas_r8) :: am_evap_st(micro_ncol, micro_nlev)
-    real(pumas_r8) :: prec_prod(micro_ncol, micro_nlev)
-    real(pumas_r8) :: cmeice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: deffi(micro_ncol, micro_nlev)
-    real(pumas_r8) :: pgamrad(micro_ncol, micro_nlev)
-    real(pumas_r8) :: lamcrad(micro_ncol, micro_nlev)
-    real(pumas_r8) :: snowice_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: scaled_diam_snow_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: graupice_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numgraup_vol_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: scaled_diam_graup_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: lflx(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: iflx(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: gflx(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: rflx(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: sflx(micro_ncol, micro_nlevp1)
-    real(pumas_r8) :: rainliq_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: reff_rain(micro_ncol, micro_nlev)
-    real(pumas_r8) :: reff_snow(micro_ncol, micro_nlev)
-    real(pumas_r8) :: reff_grau(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numrain_vol_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numsnow_vol_in_prec_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: refl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: arefl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: areflz(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frefl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: csrfl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: acsrfl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: fcsrfl(micro_ncol, micro_nlev)
-    real(pumas_r8) :: refl10cm(micro_ncol, micro_nlev)
-    real(pumas_r8) :: reflz10cm(micro_ncol, micro_nlev)
-    real(pumas_r8) :: rercld(micro_ncol, micro_nlev)
-    real(pumas_r8) :: ncai(micro_ncol, micro_nlev)
-    real(pumas_r8) :: ncal(micro_ncol, micro_nlev)
-    real(pumas_r8) :: rainliq_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: snowice_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numrain_vol_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numsnow_vol_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: diam_rain_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: diam_snow_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: graupice_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: numgraup_vol_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: diam_graup_out(micro_ncol, micro_nlev)
-    real(pumas_r8) :: freq_graup(micro_ncol, micro_nlev)
-    real(pumas_r8) :: freq_snow(micro_ncol, micro_nlev)
-    real(pumas_r8) :: freq_rain(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frac_ice(micro_ncol, micro_nlev)
-    real(pumas_r8) :: frac_cldliq_tend(micro_ncol, micro_nlev)
-    real(pumas_r8) :: micro_rain_evap(micro_ncol, micro_nlev)
 
     !Local PUMAS error message
     character(len=128) :: pumas_errstring
@@ -603,175 +508,108 @@ contains
     !Initialize error message and error code:
     errmsg  = ''
     errcode = 0
+    scheme_name = "micro_pumas_ccpp"
 
-    !Convert all CCPP input real variables to PUMAS precision:
-    micro_timestep        = real(micro_timestep_in, pumas_r8)
-    airT                  = real(micro_airT_in, pumas_r8)
-    airq                  = real(micro_airq_in, pumas_r8)
-    cldliq                = real(micro_cldliq_in, pumas_r8)
-    cldice                = real(micro_cldice_in, pumas_r8)
-    numliq                = real(micro_numliq_in, pumas_r8)
-    numice                = real(micro_numice_in, pumas_r8)
-    rainliq               = real(micro_rainliq_in, pumas_r8)
-    snowice               = real(micro_snowice_in, pumas_r8)
-    numrain               = real(micro_numrain_in, pumas_r8)
-    numsnow               = real(micro_numsnow_in, pumas_r8)
-    graupice              = real(micro_graupice_in, pumas_r8)
-    numgraup              = real(micro_numgraup_in, pumas_r8)
-    relvar                = real(micro_relvar_in, pumas_r8)
-    accre_enhan           = real(micro_accre_enhan_in, pumas_r8)
-    pmid                  = real(micro_pmid_in, pumas_r8)
-    pdel                  = real(micro_pdel_in, pumas_r8)
-    pint                  = real(micro_pint_in, pumas_r8)
-    strat_cldfrc          = real(micro_strat_cldfrc_in, pumas_r8)
-    strat_liq_cldfrc      = real(micro_strat_liq_cldfrc_in, pumas_r8)
-    strat_ice_cldfrc      = real(micro_strat_ice_cldfrc_in, pumas_r8)
-    qsatfac               = real(micro_qsatfac_in, pumas_r8)
-    naai                  = real(micro_naai_in, pumas_r8)
-    npccn                 = real(micro_npccn_in, pumas_r8)
-    rndst                 = real(micro_rndst_in, pumas_r8)
-    nacon                 = real(micro_nacon_in, pumas_r8)
-    snowice_tend_external = real(micro_snowice_tend_external_in, pumas_r8)
-    numsnow_tend_external = real(micro_numsnow_tend_external_in, pumas_r8)
-    effi_external         = real(micro_effi_external_in, pumas_r8)
-    frzimm                = real(micro_frzimm_in, pumas_r8)
-    frzcnt                = real(micro_frzcnt_in, pumas_r8)
-    frzdep                = real(micro_frzdep_in, pumas_r8)
+    ! Allocate the proc_rates DDT
+    !REMOVECAM:   MOVE this call to the init stage when CAM is retired as it is currently a performance hit
+    !Until then it needs to remain here as CAM has varying values for micro_ncol
+    call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)
+
+    if (pumas_errstring /= ' ') then
+       errmsg = pumas_errstring
+       errcode = 1
+       return
+    end if
+    !REMOVECAM_END
 
     !Call main PUMAS run routine:
     !---------------------------
 
     call micro_pumas_tend( &
-        micro_ncol,             micro_nlev,     micro_timestep,      &
-        airT,                   airq,                                &
-        cldliq,                 cldice,                              &
-        numliq,                 numice,                              &
-        rainliq,                snowice,                             &
-        numrain,                numsnow,                             &
-        graupice,               numgraup,                            &
-        relvar,                 accre_enhan,                         &
-        pmid,                   pdel, pint,                          &
-        strat_cldfrc,           strat_liq_cldfrc,                    &
-        strat_ice_cldfrc,       qsatfac,                             &
-        qcsinksum_rate1ord,                                          &
-        naai,                   npccn,                               &
-        rndst,                  nacon,                               &
-        airT_tend,              airq_tend,                           &
-        cldliq_tend,            cldice_tend,                         &
-        numliq_tend,            numice_tend,                         &
-        rainliq_tend,           snowice_tend,                        &
-        numrain_tend,           numsnow_tend,                        &
-        graupice_tend,          numgraup_tend,                       &
-        effc,                   effc_fn,        effi,                &
-        sadice,                 sadsnow,                             &
-        prect,                  preci,                               &
-        prec_evap,              am_evap_st,                          &
-        prec_prod,                                                   &
-        cmeice,                 deffi,                               &
-        pgamrad,                lamcrad,                             &
-        snowice_in_prec_out,    scaled_diam_snow_out,                &
-        graupice_in_prec_out,   numgraup_vol_in_prec_out,            &
-        scaled_diam_graup_out,                                       &
-        lflx,                   iflx,                                &
-        gflx,                                                        &
-        rflx,                   sflx,           rainliq_in_prec_out, &
-        reff_rain,              reff_snow,      reff_grau,           &
-        numrain_vol_in_prec_out,    numsnow_vol_in_prec_out,         &
-        refl,                   arefl,          areflz,              &
-        frefl,                  csrfl,          acsrfl,              &
-        fcsrfl,   refl10cm,     reflz10cm,      rercld,              &
-        ncai,                   ncal,                                &
-        rainliq_out,            snowice_out,                         &
-        numrain_vol_out,        numsnow_vol_out,                     &
-        diam_rain_out,          diam_snow_out,                       &
-        graupice_out,           numgraup_vol_out, diam_graup_out,    &
-        freq_graup,             freq_snow,        freq_rain,         &
-        frac_ice,               frac_cldliq_tend,                    &
-        micro_proc_rates_inout, pumas_errstring,                     &
-        snowice_tend_external,  numsnow_tend_external,               &
-        effi_external,          micro_rain_evap,                     &
-        frzimm,                 frzcnt,           frzdep           )
+        micro_ncol,             micro_nlev,     pumas_timestep,      &
+        pumas_airT,                   pumas_airq,                                &
+        pumas_cldliq,                 pumas_cldice,                              &
+        pumas_numliq,                 pumas_numice,                              &
+        pumas_rainliq,                pumas_snowice,                             &
+        pumas_numrain,                pumas_numsnow,                             &
+        pumas_graupice,               pumas_numgraup,                            &
+        pumas_relvar,                 pumas_accre_enhan,                   &
+        pumas_pmid,                   pumas_pdel, pumas_pint,                          &
+        pumas_strat_cldfrc,           pumas_strat_liq_cldfrc,                    &
+        pumas_strat_ice_cldfrc,       pumas_qsatfac,                             &
+        pumas_qcsinksum_rate1ord_out,                                          &
+        pumas_naai,                   pumas_npccn,                               &
+        pumas_rndst,                  pumas_nacon,                               &
+        pumas_airT_tend_out,              pumas_airq_tend_out,                           &
+        pumas_cldliq_tend_out,            pumas_cldice_tend_out,                         &
+        pumas_numliq_tend_out,            pumas_numice_tend_out,                         &
+        pumas_rainliq_tend_out,           pumas_snowice_tend_out,                        &
+        pumas_numrain_tend_out,           pumas_numsnow_tend_out,                        &
+        pumas_graupice_tend_out,          pumas_numgraup_tend_out,                       &
+        pumas_effc_out,                   pumas_effc_fn_out,        pumas_effi_out,                &
+        pumas_sadice_out,                 pumas_sadsnow_out,                             &
+        pumas_prect_out,                  pumas_preci_out,                               &
+        pumas_prec_evap_out,              pumas_am_evap_st_out,                          &
+        pumas_prec_prod_out,                                                   &
+        pumas_cmeice_out,                 pumas_deffi_out,                               &
+        pumas_pgamrad_out,                pumas_lamcrad_out,                             &
+        pumas_snowice_in_prec_out,    pumas_scaled_diam_snow_out,                &
+        pumas_graupice_in_prec_out,   pumas_numgraup_vol_in_prec_out,            &
+        pumas_scaled_diam_graup_out,                                       &
+        pumas_lflx_out,                   pumas_iflx_out,                                &
+        pumas_gflx_out,                                                        &
+        pumas_rflx_out,                   pumas_sflx_out,           pumas_rainliq_in_prec_out, &
+        pumas_reff_rain_out,              pumas_reff_snow_out,      pumas_reff_grau_out,           &
+        pumas_numrain_vol_in_prec_out,    pumas_numsnow_vol_in_prec_out,         &
+        pumas_refl_out,                   pumas_arefl_out,          pumas_areflz_out,              &
+        pumas_frefl_out,                  pumas_csrfl_out,          pumas_acsrfl_out,              &
+        pumas_fcsrfl_out,   pumas_refl10cm_out,     pumas_reflz10cm_out,      pumas_rercld_out,              &
+        pumas_ncai_out,                   pumas_ncal_out,                                &
+        pumas_rainliq_out,            pumas_snowice_out,                         &
+        pumas_numrain_vol_out,        pumas_numsnow_vol_out,                     &
+        pumas_diam_rain_out,          pumas_diam_snow_out,                       &
+        pumas_graupice_out,           pumas_numgraup_vol_out, pumas_diam_graup_out,    &
+        pumas_freq_graup_out,             pumas_freq_snow_out,        pumas_freq_rain_out,         &
+        pumas_frac_ice_out,               pumas_frac_cldliq_tend_out,                    &
+        micro_proc_rates_out, pumas_errstring,                     &
+        pumas_snowice_tend_external,  pumas_numsnow_tend_external,               &
+        pumas_effi_external,          pumas_rain_evap_out,                     &
+        pumas_frzimm,                 pumas_frzcnt,           pumas_frzdep           )
 
      !---------------------------
 
-     !Convert all PUMAS output real variables to CCPP precision:
-     micro_qcsinksum_rate1ord_out   = real(qcsinksum_rate1ord, kind_phys)
-     micro_airT_tend_out            = real(airT_tend, kind_phys)
-     micro_airq_tend_out            = real(airq_tend, kind_phys)
-     micro_cldliq_tend_out          = real(cldliq_tend, kind_phys)
-     micro_cldice_tend_out          = real(cldice_tend, kind_phys)
-     micro_numliq_tend_out          = real(numliq_tend, kind_phys)
-     micro_numice_tend_out          = real(numice_tend, kind_phys)
-     micro_rainliq_tend_out         = real(rainliq_tend, kind_phys)
-     micro_snowice_tend_out         = real(snowice_tend, kind_phys)
-     micro_numrain_tend_out         = real(numrain_tend, kind_phys)
-     micro_numsnow_tend_out         = real(numsnow_tend, kind_phys)
-     micro_graupice_tend_out        = real(graupice_tend, kind_phys)
-     micro_numgraup_tend_out        = real(numgraup_tend, kind_phys)
-     micro_effc_out                 = real(effc, kind_phys)
-     micro_effc_fn_out              = real(effc_fn, kind_phys)
-     micro_effi_out                 = real(effi, kind_phys)
-     micro_sadice_out               = real(sadice, kind_phys)
-     micro_sadsnow_out              = real(sadsnow, kind_phys)
-     micro_prect_out                = real(prect, kind_phys)
-     micro_preci_out                = real(preci, kind_phys)
-     micro_prec_evap_out            = real(prec_evap, kind_phys)
-     micro_am_evap_st_out           = real(am_evap_st, kind_phys)
-     micro_prec_prod_out            = real(prec_prod, kind_phys)
-     micro_cmeice_out               = real(cmeice, kind_phys)
-     micro_deffi_out                = real(deffi, kind_phys)
-     micro_pgamrad_out              = real(pgamrad, kind_phys)
-     micro_lamcrad_out              = real(lamcrad, kind_phys)
-     micro_snowice_in_prec_out      = real(snowice_in_prec_out, kind_phys)
-     micro_scaled_diam_snow_out     = real(scaled_diam_snow_out, kind_phys)
-     micro_graupice_in_prec_out     = real(graupice_in_prec_out, kind_phys)
-     micro_numgraup_vol_in_prec_out = real(numgraup_vol_in_prec_out, kind_phys)
-     micro_scaled_diam_graup_out    = real(scaled_diam_graup_out, kind_phys)
-     micro_lflx_out                 = real(lflx, kind_phys)
-     micro_iflx_out                 = real(iflx, kind_phys)
-     micro_gflx_out                 = real(gflx, kind_phys)
-     micro_rflx_out                 = real(rflx, kind_phys)
-     micro_sflx_out                 = real(sflx, kind_phys)
-     micro_rainliq_in_prec_out      = real(rainliq_in_prec_out, kind_phys)
-     micro_reff_rain_out            = real(reff_rain, kind_phys)
-     micro_reff_snow_out            = real(reff_snow, kind_phys)
-     micro_reff_grau_out            = real(reff_grau, kind_phys)
-     micro_numrain_vol_in_prec_out  = real(numrain_vol_in_prec_out, kind_phys)
-     micro_numsnow_vol_in_prec_out  = real(numsnow_vol_in_prec_out, kind_phys)
-     micro_refl_out                 = real(refl, kind_phys)
-     micro_arefl_out                = real(arefl, kind_phys)
-     micro_areflz_out               = real(areflz, kind_phys)
-     micro_frefl_out                = real(frefl, kind_phys)
-     micro_csrfl_out                = real(csrfl, kind_phys)
-     micro_acsrfl_out               = real(acsrfl, kind_phys)
-     micro_fcsrfl_out               = real(fcsrfl, kind_phys)
-     micro_refl10cm_out             = real(refl10cm, kind_phys)
-     micro_reflz10cm_out            = real(reflz10cm, kind_phys)
-     micro_rercld_out               = real(rercld, kind_phys)
-     micro_ncai_out                 = real(ncai, kind_phys)
-     micro_ncal_out                 = real(ncal, kind_phys)
-     micro_rainliq_out              = real(rainliq_out, kind_phys)
-     micro_snowice_out              = real(snowice_out, kind_phys)
-     micro_numrain_vol_out          = real(numrain_vol_out, kind_phys)
-     micro_numsnow_vol_out          = real(numsnow_vol_out, kind_phys)
-     micro_diam_rain_out            = real(diam_rain_out, kind_phys)
-     micro_diam_snow_out            = real(diam_snow_out, kind_phys)
-     micro_graupice_out             = real(graupice_out, kind_phys)
-     micro_numgraup_vol_out         = real(numgraup_vol_out, kind_phys)
-     micro_diam_graup_out           = real(diam_graup_out, kind_phys)
-     micro_freq_graup_out           = real(freq_graup, kind_phys)
-     micro_freq_snow_out            = real(freq_snow, kind_phys)
-     micro_freq_rain_out            = real(freq_rain, kind_phys)
-     micro_frac_ice_out             = real(frac_ice, kind_phys)
-     micro_frac_cldliq_tend_out     = real(frac_cldliq_tend, kind_phys)
-     micro_rain_evap_out            = real(micro_rain_evap, kind_phys)
 
     !Set error code to non-zero value if PUMAS returns an error message:
-    if (trim(errmsg) /= "") then
+    if (trim(pumas_errstring) /= "") then
       errcode = 1
       errmsg  = trim(pumas_errstring)
     end if
 
   end subroutine micro_pumas_ccpp_run
+
+  !> \section arg_table_micro_pumas_ccpp_timestep_final Argument Table
+  !! \htmlinclude micro_pumas_ccpp_timestep_final.html
+  subroutine micro_pumas_ccpp_timestep_final(micro_proc_rates, micro_mg_warm_rain, errmsg, errcode)
+
+    use micro_pumas_diags,  only: proc_rates_type
+
+    type(proc_rates_type), intent(inout) :: micro_proc_rates
+
+    !type of warm rain autoconversion/accr.method to use (none):
+    character(len=*), intent(in) :: micro_mg_warm_rain
+
+    character(len=*), intent(out) :: errmsg  !PUMAS/CCPP error message (none)
+    integer,            intent(out) :: errcode !CCPP error code (1)
+
+    ! No error handling in this routine
+    errmsg  = ''
+    errcode = 0
+
+    !REMOVECAM - This call should be moved to the finalize step once it is no longer allocated on every timestep
+    call micro_proc_rates%deallocate(micro_mg_warm_rain)
+    !REMOVECAM_END
+
+  end subroutine micro_pumas_ccpp_timestep_final
+
 
 end module micro_pumas_ccpp
