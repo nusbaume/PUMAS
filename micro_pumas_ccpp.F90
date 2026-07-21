@@ -269,7 +269,6 @@ contains
                                   scheme_name, errmsg, errcode)
 
     !External dependencies:
-    use ccpp_kinds,        only: kind_phys
     use micro_pumas_v1,    only: micro_pumas_tend
     use micro_pumas_diags, only: proc_rates_type
     use pumas_kinds,       only: pumas_r8=>kind_r8
@@ -512,8 +511,16 @@ contains
     scheme_name = "micro_pumas_ccpp"
 
     ! Allocate the proc_rates DDT
+    !REMOVECAM:   MOVE this call to the init stage when CAM is retired as it is currently a performance hit
+    !Until then it needs to remain here as CAM has varying values for micro_ncol
     call micro_proc_rates_out%allocate(micro_ncol, micro_nlev, ncd, micro_mg_warm_rain, pumas_errstring)
 
+    if (pumas_errstring /= ' ') then
+       errmsg = pumas_errstring
+       errcode = 1
+       return
+    end if
+    !REMOVECAM_END
 
     !Call main PUMAS run routine:
     !---------------------------
@@ -598,7 +605,9 @@ contains
     errmsg  = ''
     errcode = 0
 
+    !REMOVECAM - This call should be moved to the finalize step once it is no longer allocated on every timestep
     call micro_proc_rates%deallocate(micro_mg_warm_rain)
+    !REMOVECAM_END
 
   end subroutine micro_pumas_ccpp_timestep_final
 
